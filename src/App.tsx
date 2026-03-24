@@ -1,25 +1,38 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Trash2, Eye, EyeOff, Check, Settings2, Server, Key, Box, Moon, Sun, Info } from 'lucide-react';
+import { Plus, Trash2, Check, Settings2, Server, Moon, Sun } from 'lucide-react';
+import Editor from '@monaco-editor/react';
 
 type Config = {
   id: string;
   name: string;
-  apiKey: string;
-  model: string;
-  baseUrl: string;
+  content: string;
   isActive: boolean;
 };
 
 const initialConfigs: Config[] = [
-  { id: '1', name: 'default', apiKey: 'sk-default-123456789', model: 'gpt-4', baseUrl: 'https://api.openai.com/v1', isActive: true },
-  { id: '2', name: 'dev', apiKey: 'sk-dev-abcdefgh', model: 'gpt-3.5-turbo', baseUrl: 'https://dev.api.example.com', isActive: false },
-  { id: '3', name: 'prod', apiKey: 'sk-prod-xyz98765', model: 'gpt-4-turbo', baseUrl: 'https://api.production.com', isActive: false },
+  { 
+    id: '1', 
+    name: 'default', 
+    content: '{\n  "apiKey": "sk-default-123456789",\n  "model": "gpt-4",\n  "baseUrl": "https://api.openai.com/v1"\n}', 
+    isActive: true 
+  },
+  { 
+    id: '2', 
+    name: 'dev', 
+    content: '{\n  "apiKey": "sk-dev-abcdefgh",\n  "model": "gpt-3.5-turbo",\n  "baseUrl": "https://dev.api.example.com",\n  "debug": true\n}', 
+    isActive: false 
+  },
+  { 
+    id: '3', 
+    name: 'prod', 
+    content: '{\n  "apiKey": "sk-prod-xyz98765",\n  "model": "gpt-4-turbo",\n  "baseUrl": "https://api.production.com",\n  "timeout": 5000\n}', 
+    isActive: false 
+  },
 ];
 
 export default function App() {
   const [configs, setConfigs] = useState<Config[]>(initialConfigs);
   const [selectedId, setSelectedId] = useState<string>(initialConfigs[0].id);
-  const [showApiKey, setShowApiKey] = useState(false);
   const [isDark, setIsDark] = useState(false);
 
   // Initialize dark mode based on system preference
@@ -41,21 +54,17 @@ export default function App() {
 
   const handleSelect = (id: string) => {
     setSelectedId(id);
-    setShowApiKey(false);
   };
 
   const handleAdd = () => {
     const newConfig: Config = {
       id: Date.now().toString(),
       name: 'New Config',
-      apiKey: '',
-      model: 'gpt-3.5-turbo',
-      baseUrl: 'https://api.openai.com/v1',
+      content: '{\n  \n}',
       isActive: false,
     };
     setConfigs([...configs, newConfig]);
     setSelectedId(newConfig.id);
-    setShowApiKey(false);
   };
 
   const handleDelete = (id: string) => {
@@ -155,7 +164,7 @@ export default function App() {
         {selectedConfig ? (
           <>
             {/* Header */}
-            <div className="px-8 py-6 border-b border-gray-200 dark:border-white/10 flex items-center justify-between bg-white/50 dark:bg-[#09090b]/50 backdrop-blur-sm sticky top-0 z-10">
+            <div className="px-8 py-6 border-b border-gray-200 dark:border-white/10 flex items-center justify-between bg-white/50 dark:bg-[#09090b]/50 backdrop-blur-sm sticky top-0 z-10 shrink-0">
               <div className="flex items-center gap-3">
                 <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-100">
                   {selectedConfig.name || '未命名配置'}
@@ -172,12 +181,10 @@ export default function App() {
               </div>
             </div>
 
-            {/* Form */}
-            <div className="flex-1 overflow-y-auto p-8">
-              <div className="max-w-2xl space-y-8">
-                
-                {/* Config Name */}
-                <div className="space-y-2">
+            {/* Form & Editor */}
+            <div className="flex-1 flex flex-col overflow-hidden">
+              <div className="px-8 py-4 border-b border-gray-200 dark:border-white/10 shrink-0">
+                <div className="max-w-xl space-y-2">
                   <label className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
                     配置名称
                   </label>
@@ -185,76 +192,32 @@ export default function App() {
                     type="text" 
                     value={selectedConfig.name}
                     onChange={(e) => handleUpdateConfig(selectedConfig.id, { name: e.target.value })}
-                    className="w-full px-4 py-2.5 bg-white dark:bg-[#18181b] border border-gray-200 dark:border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:focus:ring-blue-500/20 focus:border-blue-500 dark:focus:border-blue-500 transition-all text-gray-900 dark:text-gray-100"
+                    className="w-full px-4 py-2 bg-white dark:bg-[#18181b] border border-gray-200 dark:border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:focus:ring-blue-500/20 focus:border-blue-500 dark:focus:border-blue-500 transition-all text-gray-900 dark:text-gray-100"
                     placeholder="例如: Production API"
                   />
                 </div>
-
-                {/* API Key */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
-                    <Key className="w-4 h-4 text-gray-400" />
-                    API Key
-                  </label>
-                  <div className="relative">
-                    <input 
-                      type={showApiKey ? "text" : "password"} 
-                      value={selectedConfig.apiKey}
-                      onChange={(e) => handleUpdateConfig(selectedConfig.id, { apiKey: e.target.value })}
-                      className="w-full pl-4 pr-12 py-2.5 bg-white dark:bg-[#18181b] border border-gray-200 dark:border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:focus:ring-blue-500/20 focus:border-blue-500 dark:focus:border-blue-500 transition-all text-gray-900 dark:text-gray-100 font-mono text-sm"
-                      placeholder="sk-..."
-                    />
-                    <button 
-                      type="button"
-                      onClick={() => setShowApiKey(!showApiKey)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors p-1"
-                    >
-                      {showApiKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    </button>
-                  </div>
-                </div>
-
-                {/* Model */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
-                    <Box className="w-4 h-4 text-gray-400" />
-                    Model
-                  </label>
-                  <div className="relative">
-                    <select 
-                      value={selectedConfig.model}
-                      onChange={(e) => handleUpdateConfig(selectedConfig.id, { model: e.target.value })}
-                      className="w-full px-4 py-2.5 bg-white dark:bg-[#18181b] border border-gray-200 dark:border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:focus:ring-blue-500/20 focus:border-blue-500 dark:focus:border-blue-500 transition-all text-gray-900 dark:text-gray-100 appearance-none"
-                    >
-                      <option value="gpt-3.5-turbo">gpt-3.5-turbo</option>
-                      <option value="gpt-4">gpt-4</option>
-                      <option value="gpt-4-turbo">gpt-4-turbo</option>
-                      <option value="gpt-4o">gpt-4o</option>
-                      <option value="claude-3-opus">claude-3-opus</option>
-                      <option value="claude-3-sonnet">claude-3-sonnet</option>
-                      <option value="gemini-1.5-pro">gemini-1.5-pro</option>
-                    </select>
-                    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Base URL */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
-                    <Server className="w-4 h-4 text-gray-400" />
-                    Base URL
-                  </label>
-                  <input 
-                    type="text" 
-                    value={selectedConfig.baseUrl}
-                    onChange={(e) => handleUpdateConfig(selectedConfig.id, { baseUrl: e.target.value })}
-                    className="w-full px-4 py-2.5 bg-white dark:bg-[#18181b] border border-gray-200 dark:border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:focus:ring-blue-500/20 focus:border-blue-500 dark:focus:border-blue-500 transition-all text-gray-900 dark:text-gray-100 font-mono text-sm"
-                    placeholder="https://api.openai.com/v1"
-                  />
-                </div>
-                
+              </div>
+              
+              {/* Monaco Editor Container */}
+              <div className="flex-1 relative">
+                <Editor
+                  height="100%"
+                  defaultLanguage="json"
+                  theme={isDark ? 'vs-dark' : 'light'}
+                  value={selectedConfig.content}
+                  onChange={(value) => handleUpdateConfig(selectedConfig.id, { content: value || '' })}
+                  options={{
+                    minimap: { enabled: false },
+                    fontSize: 14,
+                    wordWrap: 'on',
+                    formatOnPaste: true,
+                    formatOnType: true,
+                    scrollBeyondLastLine: false,
+                    padding: { top: 16, bottom: 16 },
+                    fontFamily: "'JetBrains Mono', 'Fira Code', 'Consolas', monospace",
+                  }}
+                  className="absolute inset-0"
+                />
               </div>
             </div>
           </>
