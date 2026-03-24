@@ -11,9 +11,12 @@
     "lint": "tsc --noEmit"
   },
   "dependencies": {
+    "@codemirror/lang-json": "^6.0.2",
     "@google/genai": "^1.29.0",
     "@monaco-editor/react": "^4.7.0",
     "@tailwindcss/vite": "^4.1.14",
+    "@uiw/codemirror-theme-vscode": "^4.25.8",
+    "@uiw/react-codemirror": "^4.25.8",
     "@vitejs/plugin-react": "^5.0.4",
     "dotenv": "^17.2.3",
     "express": "^4.21.2",

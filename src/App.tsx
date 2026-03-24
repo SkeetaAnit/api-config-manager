@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Trash2, Check, Settings2, Server, Moon, Sun } from 'lucide-react';
-import Editor from '@monaco-editor/react';
+import CodeMirror from '@uiw/react-codemirror';
+import { json } from '@codemirror/lang-json';
+import { vscodeDark } from '@uiw/codemirror-theme-vscode';
 
 type Config = {
   id: string;
@@ -198,26 +200,19 @@ export default function App() {
                 </div>
               </div>
               
-              {/* Monaco Editor Container */}
-              <div className="flex-1 relative">
-                <Editor
-                  height="100%"
-                  defaultLanguage="json"
-                  theme={isDark ? 'vs-dark' : 'light'}
-                  value={selectedConfig.content}
-                  onChange={(value) => handleUpdateConfig(selectedConfig.id, { content: value || '' })}
-                  options={{
-                    minimap: { enabled: false },
-                    fontSize: 14,
-                    wordWrap: 'on',
-                    formatOnPaste: true,
-                    formatOnType: true,
-                    scrollBeyondLastLine: false,
-                    padding: { top: 16, bottom: 16 },
-                    fontFamily: "'JetBrains Mono', 'Fira Code', 'Consolas', monospace",
-                  }}
-                  className="absolute inset-0"
-                />
+              {/* CodeMirror Editor Container */}
+              <div className="flex-1 relative bg-white dark:bg-[#1e1e1e] border-t border-gray-200 dark:border-white/10">
+                <div className="absolute inset-0 overflow-hidden">
+                  <CodeMirror
+                    value={selectedConfig.content}
+                    height="100%"
+                    extensions={[json()]}
+                    theme={isDark ? vscodeDark : 'light'}
+                    onChange={(value) => handleUpdateConfig(selectedConfig.id, { content: value })}
+                    className="h-full text-[14px] [&>.cm-editor]:h-full [&>.cm-editor]:outline-none"
+                    style={{ fontFamily: "'JetBrains Mono', 'Fira Code', 'Consolas', monospace" }}
+                  />
+                </div>
               </div>
             </div>
           </>
